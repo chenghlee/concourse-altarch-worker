@@ -12,3 +12,6 @@ docker export registry-image | gzip \
   > resource-types/registry-image/rootfs.tgz
 docker rm -v registry-image
 docker build -t concourse-arm-worker .
+
+# Extract compiled binaries
+docker run -it -v $PWD:/home --entrypoint "" concourse-arm-worker /bin/sh -c "tar -czf /home/concourse_extracted.tar.gz /usr/local/concourse"

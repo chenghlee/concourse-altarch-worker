@@ -1,0 +1,24 @@
+# See also https://github.com/concourse/concourse/issues/480
+# Install:
+#  * Copy to /etc/systemd/system/
+#  * Enable via "systemctl enable concourse-worker.service"
+[Unit]
+Description=Concourse Worker
+After=network.target
+
+[Service]
+EnvironmentFile=/usr/local/concourse/etc/worker.conf
+ExecStart=/usr/local/concourse/bin/concourse worker
+KillMode=process
+LimitNPROC=infinity
+LimitNOFILE=infinity
+TasksMax=infinity
+Delegate=yes
+Restart=on-failure
+RestartSec=3
+ExecStop=/bin/kill -USR2 $MAINPID ; /usr/bin/tail --pid $MAINPID -f /dev/null
+TimeoutStopSec=300
+User=concourse
+
+[Install]
+WantedBy=multi-user.target
