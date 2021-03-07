@@ -11,7 +11,8 @@ mkdir -p resource-types/registry-image
 docker export registry-image | gzip \
   > resource-types/registry-image/rootfs.tgz
 docker rm -v registry-image
-docker build -t concourse-arm-worker .
+docker build -t concourse-s390x-worker .
 
 # Extract compiled binaries
-docker run -it -v $PWD:/home --entrypoint "" concourse-arm-worker /bin/sh -c "tar -czf /home/concourse_extracted.tar.gz /usr/local/concourse"
+docker run -it --rm -v $PWD:/home --entrypoint "" concourse-s390x-worker \
+    /bin/sh -c "tar -C /opt -czf /home/concourse_extracted.tar.gz concourse"

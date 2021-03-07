@@ -1,6 +1,6 @@
 FROM golang:1.14.3-alpine3.11 as builder
 ENV GO111MODULE=on
-ENV CONCOURSE_VERSION=v5.5.10
+ENV CONCOURSE_VERSION=v5.5.10-anaconda1
 ENV GUARDIAN_COMMIT=51480bc73a282c02f827dde4851cc12265774272
 ENV CNI_PLUGINS_VERSION=v0.8.6
 RUN apk add gcc git g++
@@ -12,7 +12,7 @@ RUN go build -ldflags "-extldflags '-static'" -mod=vendor -o gdn ./cmd/gdn
 WORKDIR /go/guardian/cmd/init
 RUN gcc -static -o init init.c ignore_sigchild.c
 
-RUN git clone --branch $CONCOURSE_VERSION https://github.com/concourse/concourse /go/concourse
+RUN git clone --branch $CONCOURSE_VERSION https://github.com/chenghlee/concourse /go/concourse
 WORKDIR /go/concourse
 RUN go build -ldflags "-extldflags '-static'" ./cmd/concourse
 
@@ -23,12 +23,13 @@ ENV CGO_ENABLED=0
 RUN ./build_linux.sh
 
 FROM ubuntu:bionic AS ubuntu
-COPY --from=0 /go/concourse/concourse /usr/local/concourse/bin/
-COPY --from=0 /go/guardian/gdn /usr/local/concourse/bin/
-COPY --from=0 /go/guardian/cmd/init/init /usr/local/concourse/bin/
-COPY --from=0 /go/plugins/bin/* /usr/local/concourse/bin/
+ARG CONCOURSE_PREFIX=/opt/concourse
+COPY --from=0 /go/concourse/concourse ${CONCOURSE_PREFIX}/bin/
+COPY --from=0 /go/guardian/gdn ${CONCOURSE_PREFIX}/bin/
+COPY --from=0 /go/guardian/cmd/init/init ${CONCOURSE_PREFIX}/bin/
+COPY --from=0 /go/plugins/bin/* ${CONCOURSE_PREFIX}/bin/
 # add resource-types
-COPY resource-types /usr/local/concourse/resource-types
+COPY resource-types ${CONCOURSE_PREFIX}/resource-types
 
 # auto-wire work dir for 'worker' and 'quickstart'
 ENV CONCOURSE_WORK_DIR                /worker-state
@@ -48,6 +49,6 @@ RUN apt-get update && apt-get install -y \
 
 STOPSIGNAL SIGUSR2
 
-ADD https://raw.githubusercontent.com/concourse/concourse-docker/486894e6d6f84aad112c14094bca18bec8c48154/entrypoint.sh /usr/local/bin/
-RUN chmod +x /usr/local/bin/entrypoint.sh
-ENTRYPOINT ["dumb-init", "/usr/local/bin/entrypoint.sh"]
+ADD https://raw.githubusercontent.com/concourse/concourse-docker/486894e6d6f84aad112c14094bca18bec8c48154/entrypoint.sh /
+RUN chmod +x /entrypoint.sh
+ENTRYPOINT ["dumb-init", "/entrypoint.sh"]

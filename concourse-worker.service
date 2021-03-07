@@ -7,8 +7,8 @@ Description=Concourse Worker
 After=network.target
 
 [Service]
-EnvironmentFile=/usr/local/concourse/etc/worker.conf
-ExecStart=/usr/local/concourse/bin/concourse worker
+EnvironmentFile=/opt/concourse/etc/worker.conf
+ExecStart=/opt/concourse/bin/concourse worker
 KillMode=process
 LimitNPROC=infinity
 LimitNOFILE=infinity
